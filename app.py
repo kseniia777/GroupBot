@@ -54,7 +54,10 @@ async def new_member(message: types.Message):
 
     await bot.delete_message(message.chat.id, message.message_id)
 
-
+##удаление "покинул группу"
+@dp.message_handler(content_types=types.ContentType.LEFT_CHAT_MEMBER)
+async def new_member(message: types.Message):
+    await bot.delete_message(message.chat.id, message.message_id)
 
 ###работа в боте
 @dp.message_handler(CommandStart( ))
