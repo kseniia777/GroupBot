@@ -1,5 +1,6 @@
 BOT_TOKEN = '***'
-admin_id = [***, ***]
-group_id = "@***"
-time_stamp = 5 #как часто (в часах) присылать сообщение в чат
+admin_id = []
+group_id = "***"
+time_stamp = 60 #как часто (в минутах) присылать сообщение в чат
 bot_name = "@***"
+present = "Gift ..."
