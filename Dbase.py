@@ -1,48 +1,58 @@
-class Comp_table:
+class Competition:
 
     def __init__(self, db):
         self.db = db
 
-    def id_competition(self, comp_number):
+    def set_competition(self, comp_number):
         cursor = self.db.cursor( )
         cursor.execute(
-            "INSERT INTO id_competition (number) VALUES (?)",
-            (comp_number,))
+            "INSERT INTO competition (number) VALUES (?)",
+            (comp_number,)
+        )
         self.db.commit( )
-    def get_id_comp(self):
+
+    def get_competition(self):
         cursor = self.db.cursor( )
-        cursor.execute("SELECT MAX(number) AS number FROM id_competition")
+        cursor.execute("SELECT MAX(number) AS number FROM competition")
         id_comp = cursor.fetchone()[0]
+        if not id_comp:
+            return 0
         return id_comp
 
-class Adding_user:
+
+class AddUser:
 
     def __init__(self, db):
         self.db = db
 
     def insert_join_message(self, from_id, added_id, time):
         cursor = self.db.cursor()
-        cursor.execute("SELECT MAX(number) AS number FROM id_competition")
+        cursor.execute("SELECT MAX(number) AS number FROM competition")
         id_comp = cursor.fetchone( )[0]
         cursor.execute("INSERT INTO adding_user (numb_comp, from_id, added_id, time) VALUES (?, ?, ?, ?)",
                        (id_comp, from_id, added_id, time))
         self.db.commit()
 
-    def user_info(self, user_id, user_name, first_name, last_name):
-        cursor = self.db.cursor( )
-        cursor.execute("INSERT INTO user_info (user_id, user_name, first_name, last_name) VALUES (?, ?, ?, ?)",
-                       (user_id, user_name, first_name, last_name))
+    def add_new_user(self, user_id, user_name, first_name, last_name):
+        cursor = self.db.cursor()
+        print(user_id)
+        cursor.execute("SELECT id FROM user_info WHERE user_id = ?", (user_id,))
+        existing_user = cursor.fetchone()[0]
+        if not existing_user:
+            cursor.execute("INSERT INTO user_info (user_id, user_name, first_name, last_name) VALUES (?, ?, ?, ?)",
+                           (user_id, user_name, first_name, last_name)
+                           )
+            self.db.commit()
 
-        self.db.commit( )
 
-class Get_info:
+class GetInfo:
 
     def __init__(self, db):
         self.db = db
 
     def current_comp(self):
         cursor = self.db.cursor( )
-        cursor.execute("SELECT MAX(number) AS number FROM id_competition")
+        cursor.execute("SELECT MAX(number) AS number FROM competition")
         self.numb_comp = cursor.fetchone()[0]
         return self.numb_comp
 
@@ -136,73 +146,75 @@ class Get_info:
         cursor.execute(
             "SELECT user_id FROM user_info")
         l = cursor.fetchall( )
-        z = []
-        for i in l:
-            z.append(i[0])
-        #print(z)
-        return z
-        #print(z)
-        #us_list = [(296398759,), (386732873,), (596459751,), (933693522,), (1045326246,), (1171063162,), (1316137796,), (1383123353,), (1474998265,), (1482254642,), (1536743578,), (1663506819,)]
+        return [i[0] for i in l]
 
-        #return us_list
 
-class Switch:
+class SwitchCompetition:
 
     def __init__(self, db):
         self.db = db
 
     def comp_off(self):
         cursor = self.db.cursor( )
-        cursor.execute("INSERT INTO id_competition (number) VALUES (0)")
+        cursor.execute("INSERT INTO competition (number) VALUES (0)")
         self.db.commit()
 
     def comp_on(self):
         cursor = self.db.cursor()
-        cursor.execute("DELETE FROM id_competition WHERE number = 0")
+        cursor.execute("DELETE FROM competition WHERE number = 0")
         self.db.commit()
 
     def status(self):
         cursor = self.db.cursor( )
         cursor.execute(
-            "SELECT number FROM id_competition")
+            "SELECT number FROM competition")
         added_info = cursor.fetchall()
         l = []
         for i in added_info:
             for n in i:
                 l.append(n)
-        if 0 in l:
-            a = False
-        else:
-            a = True
-        return a
+        return False if 0 in l else True
 
-class GroupM:
+
+class GroupMessage:
 
     def __init__(self, db):
         self.db = db
 
     def save_id(self, message_id):
         cursor = self.db.cursor( )
-        cursor.execute("INSERT INTO group_mes (message_id) VALUES (?)", (message_id,))
+        cursor.execute("INSERT INTO group_message (message_id) VALUES (?)", (message_id,))
         self.db.commit( )
 
     def get_id(self):
         cursor = self.db.cursor( )
-        cursor.execute("SELECT MAX(message_id) AS message_id FROM group_mes")
+        cursor.execute("SELECT MAX(message_id) AS message_id FROM group_message")
         self.message_id = cursor.fetchone( )[0]
-        print(self.message_id)
-        print(type(self.message_id))
         return self.message_id
 
 
-
-
-
-
-
-
-
-
-
-
-
+def create_tables(db):
+    cursor = db.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS competition (
+                          "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
+                          "number"  INTEGER
+                    )''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS adding_user (
+                          "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
+                          "numb_comp"  INTEGER,
+                          "from_id"  INTEGER,
+                          "added_id"  INTEGER,
+                          "time"  DATETIME
+                    )''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS user_info (
+                          "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
+                          "user_id"  INTEGER,
+                          "user_name"  INTEGER,
+                          "first_name"  VARCHAR,
+                          "last_name"  VARCHAR
+                    )''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS group_message (
+                          "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
+                          "message_id"  INTEGER
+                    )''')
+    db.commit()
